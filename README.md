@@ -1,0 +1,1 @@
+## My personal project about visual slam for quadcopter. It's in development (the code is pretty stupid)
