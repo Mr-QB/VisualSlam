@@ -9,6 +9,6 @@ if __name__ == "__main__":
     VO = VisualOdometry(
         image_path="droneTestData/droneTest.mp4",
         calib_camera_file="droneTestData/droneCalib.txt",
-        all_oxits_data_path=None
+        all_oxits_data_path=None,
     )
     VO.exportResult()
