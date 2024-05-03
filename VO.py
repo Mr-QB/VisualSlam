@@ -250,11 +250,11 @@ class VisualOdometry:
             lon.append(self.all_oxits_data[i][1])
             alt.append(self.all_oxits_data[i][2])
 
-            (ln,) = ax.plot([], [], [], marker="o")
+        (ln,) = ax.plot([], [], [], marker="o")
 
-            min_lat_value, max_lat_value = float(1000), float(1)
-            min_lon_value, max_lon_value = float(1000), float(1)
-            min_alt_value, max_alt_value = float(1000), float(1)
+        min_lat_value, max_lat_value = float(1000), float(1)
+        min_lon_value, max_lon_value = float(1000), float(1)
+        min_alt_value, max_alt_value = float(1000), float(1)
 
         def update(frame):
 

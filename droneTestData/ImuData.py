@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from DataRaw import RawData
+from RawData import RawData
 
 
 class ImuData:
@@ -13,9 +13,9 @@ class ImuData:
         print(self.imu_data)
 
 
-if __name__ == "__main__":
-    raw_data = RawData()
-    raw_data.dataProcessing()
+# if __name__ == "__main__":
+#     raw_data = RawData()
+#     raw_data.dataProcessing()
 
-    imu_data = ImuData()
-    imu_data.test()
+#     imu_data = ImuData()
+#     imu_data.test()
