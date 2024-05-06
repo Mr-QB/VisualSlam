@@ -142,7 +142,7 @@ class VisualOdometry:
             relative_scales.append(scale)
 
         # Select the pair there has the most points with positive z coordinate
-        right_pair_idx = np.argmin(z_sums)
+        right_pair_idx = np.argmax(z_sums)
         right_pair = pairs[right_pair_idx]
         relative_scale = relative_scales[right_pair_idx]
         R1, t = right_pair
