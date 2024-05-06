@@ -100,7 +100,10 @@ class VisualOdometry:
         )  # Essential matrix
 
         # Decompose the Essential matrix into R and t
-        R, t = self.decompEssentialMat(E, prev_features, curr_features)
+        # R, t = self.decompEssentialMat(E, prev_features, curr_features)
+        _, R, t, _ = cv2.recoverPose(
+            E, curr_features, prev_features, cameraMatrix=self.camera_matrix
+        )
 
         # Get transformation matrix
         transformation_matrix = self.formTransf(R, np.squeeze(t))
@@ -142,7 +145,7 @@ class VisualOdometry:
             relative_scales.append(scale)
 
         # Select the pair there has the most points with positive z coordinate
-        right_pair_idx = np.argmax(z_sums)
+        right_pair_idx = np.argmin(z_sums)
         right_pair = pairs[right_pair_idx]
         relative_scale = relative_scales[right_pair_idx]
         R1, t = right_pair
