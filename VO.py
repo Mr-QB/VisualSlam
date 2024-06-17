@@ -32,6 +32,12 @@ class VisualOdometry:
 
         self.getTrajactory()
 
+    def resize(self,frame):
+        # Size reduction ratio according to 16:9
+        new_width = 640  # New width
+        new_height = 360  # New height
+        return cv2.resize(frame, (new_width, new_height), interpolation=cv2.INTER_AREA)
+
     def getCameraMatrix(self):
         filedata = {}
         with open(self.calib_camera_file, "r") as f:
@@ -51,7 +57,7 @@ class VisualOdometry:
             for filename in sorted(os.listdir(self.imame_path)):
                 if filename.endswith(".png"):
                     image_path = os.path.join(self.imame_path, filename)
-                    self.image_list.append(cv2.imread(image_path, cv2.IMREAD_GRAYSCALE))
+                    self.image_list.append(self.resize(cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)))
             return self.image_list
         except:
             video_capture = cv2.VideoCapture(self.imame_path)
@@ -60,7 +66,7 @@ class VisualOdometry:
             while success:
                 if count % 3 == 0:
                     gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                    self.image_list.append(gray_frame)
+                    self.image_list.append(self.resize(gray_frame))
                     success, frame = video_capture.read()
                 count += 1
             video_capture.release()
