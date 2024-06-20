@@ -114,8 +114,11 @@ class VisualOdometry:
             for filename in sorted(os.listdir(self.imame_path)):
                 if filename.endswith(".png"):
                     image_path = os.path.join(self.imame_path, filename)
+                    # self.image_list.append(
+                    #     self.resize(cv2.imread(image_path, cv2.IMREAD_GRAYSCALE))
+                    # )
                     self.image_list.append(
-                        self.resize(cv2.imread(image_path, cv2.IMREAD_GRAYSCALE))
+                        (cv2.imread(image_path, cv2.IMREAD_GRAYSCALE))
                     )
             return self.image_list
         except:
@@ -174,12 +177,12 @@ class VisualOdometry:
         _, R, t, _ = cv2.recoverPose(
             E, curr_features, prev_features, cameraMatrix=self.camera_matrix
         )
-        if (
-            self.frame_times[numFrame] - 3 >= list(self.gimbal_rotation_matrix.keys())[0]
-            if self.gimbal_rotation_matrix else False
-        ):
-            R = np.matmul(R, list(self.gimbal_rotation_matrix.values())[0])
-            del self.gimbal_rotation_matrix[list(self.gimbal_rotation_matrix.keys())[0]]
+        # if (
+        #     self.frame_times[numFrame] - 3 >= list(self.gimbal_rotation_matrix.keys())[0]
+        #     if self.gimbal_rotation_matrix else False
+        # ):
+        #     R = np.matmul(R, list(self.gimbal_rotation_matrix.values())[0])
+        #     del self.gimbal_rotation_matrix[list(self.gimbal_rotation_matrix.keys())[0]]
 
         # Get transformation matrix
         transformation_matrix = self.formTransf(R, np.squeeze(t))
