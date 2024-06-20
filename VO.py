@@ -174,12 +174,12 @@ class VisualOdometry:
         _, R, t, _ = cv2.recoverPose(
             E, curr_features, prev_features, cameraMatrix=self.camera_matrix
         )
-        # if (
-        #     self.frame_times[numFrame] - 3 >= list(self.gimbal_rotation_matrix.keys())[0]
-        #     if self.gimbal_rotation_matrix else False
-        # ):
-        #     R = np.matmul(R, list(self.gimbal_rotation_matrix.values())[0])
-        #     del self.gimbal_rotation_matrix[list(self.gimbal_rotation_matrix.keys())[0]]
+        if (
+            self.frame_times[numFrame] - 3 >= list(self.gimbal_rotation_matrix.keys())[0]
+            if self.gimbal_rotation_matrix else False
+        ):
+            R = np.matmul(R, list(self.gimbal_rotation_matrix.values())[0])
+            del self.gimbal_rotation_matrix[list(self.gimbal_rotation_matrix.keys())[0]]
 
         # Get transformation matrix
         transformation_matrix = self.formTransf(R, np.squeeze(t))
