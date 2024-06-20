@@ -20,6 +20,7 @@ class VisualOdometry:
         self.trajactory_predict = []
         self.have_gps = True
         self.gimbal_data_path = gimbal_data_path
+        self.getGimbalData()
 
         self.image_list = self.getImageList()
 
@@ -37,6 +38,7 @@ class VisualOdometry:
         self.getTrajactory()
 
     def getGimbalData(self):
+        print("true")
         def rotationMatrixFromEuler(pitch, roll, yaw):
             pitch = np.radians(pitch)
             roll = np.radians(roll)
