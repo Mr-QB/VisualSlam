@@ -38,7 +38,6 @@ class VisualOdometry:
         self.getTrajactory()
 
     def getGimbalData(self):
-        print("true")
         def rotationMatrixFromEuler(pitch, roll, yaw):
             pitch = np.radians(pitch)
             roll = np.radians(roll)
@@ -176,8 +175,8 @@ class VisualOdometry:
             E, curr_features, prev_features, cameraMatrix=self.camera_matrix
         )
         if (
-            self.frame_times[numFrame] - 3
-            >= list(self.gimbal_rotation_matrix.keys())[0]
+            self.frame_times[numFrame] - 3 >= list(self.gimbal_rotation_matrix.keys())[0]
+            if self.gimbal_rotation_matrix else False
         ):
             R = np.matmul(R, list(self.gimbal_rotation_matrix.values())[0])
             del self.gimbal_rotation_matrix[list(self.gimbal_rotation_matrix.keys())[0]]
