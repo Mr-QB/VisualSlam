@@ -123,14 +123,15 @@ class VisualOdometry:
             success, frame = video_capture.read()
 
             self.frame_times = []
+            count = 0
             while success:
-                current_frame = int(video_capture.get(cv2.CAP_PROP_POS_FRAMES))
-                if current_frame % 3 == 0:
+                if count % 3 == 0:
                     gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                     self.image_list.append(self.resize(gray_frame))
                     success, frame = video_capture.read()
-                    current_time = current_frame / fps
+                    current_time = count / fps
                     self.frame_times.append(current_time)
+                count += 1
             video_capture.release()
             return self.image_list
 
