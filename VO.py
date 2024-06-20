@@ -7,15 +7,19 @@ from matplotlib.animation import FuncAnimation, ArtistAnimation
 from mpl_toolkits.mplot3d import Axes3D
 from math import sin, cos
 import time
+import pandas as pd
 
 
 class VisualOdometry:
-    def __init__(self, image_path, calib_camera_file, all_oxits_data_path):
+    def __init__(
+        self, image_path, calib_camera_file, all_oxits_data_path, gimbal_data_path
+    ):
         self.imame_path = image_path
         self.calib_camera_file = calib_camera_file
         self.all_oxits_data_path = all_oxits_data_path
         self.trajactory_predict = []
         self.have_gps = True
+        self.gimbal_data_path = gimbal_data_path
 
         self.image_list = self.getImageList()
 
@@ -32,7 +36,59 @@ class VisualOdometry:
 
         self.getTrajactory()
 
-    def resize(self,frame):
+    def getGimbalData(self):
+        def rotationMatrixFromEuler(pitch, roll, yaw):
+            pitch = np.radians(pitch)
+            roll = np.radians(roll)
+            yaw = np.radians(yaw)
+
+            R_x = np.array(
+                [
+                    [1, 0, 0],
+                    [0, np.cos(pitch), -np.sin(pitch)],
+                    [0, np.sin(pitch), np.cos(pitch)],
+                ]
+            )
+            R_y = np.array(
+                [
+                    [np.cos(roll), 0, np.sin(roll)],
+                    [0, 1, 0],
+                    [-np.sin(roll), 0, np.cos(roll)],
+                ]
+            )
+            R_z = np.array(
+                [
+                    [np.cos(yaw), -np.sin(yaw), 0],
+                    [np.sin(yaw), np.cos(yaw), 0],
+                    [0, 0, 1],
+                ]
+            )
+
+            R = np.dot(R_z, np.dot(R_y, R_x))
+            return R
+
+        self.gimbal_data = pd.read_pickle(self.gimbal_data_path)
+        self.gimbal_rotation_matrix = {}
+        for index in range(23, self.gimbal_data.shape[0]):
+            pitch = (
+                self.gimbal_data.loc[index]["GIMBAL.pitch"]
+                - self.gimbal_data.loc[index - 1]["GIMBAL.pitch"]
+            )
+            roll = (
+                self.gimbal_data.loc[index]["GIMBAL.roll"]
+                - self.gimbal_data.loc[index - 1]["GIMBAL.roll"]
+            )
+            yaw = (
+                self.gimbal_data.loc[index]["GIMBAL.yaw"]
+                - self.gimbal_data.loc[index - 1]["GIMBAL.yaw"]
+            )
+
+            rotation_matrix = rotationMatrixFromEuler(pitch, roll, yaw)
+            self.gimbal_rotation_matrix[
+                (self.gimbal_data.loc[index]["OSD.flyTime [s]"])
+            ] = rotation_matrix
+
+    def resize(self, frame):
         # Size reduction ratio according to 16:9
         new_width = 640  # New width
         new_height = 360  # New height
@@ -57,18 +113,24 @@ class VisualOdometry:
             for filename in sorted(os.listdir(self.imame_path)):
                 if filename.endswith(".png"):
                     image_path = os.path.join(self.imame_path, filename)
-                    self.image_list.append(self.resize(cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)))
+                    self.image_list.append(
+                        self.resize(cv2.imread(image_path, cv2.IMREAD_GRAYSCALE))
+                    )
             return self.image_list
         except:
             video_capture = cv2.VideoCapture(self.imame_path)
+            fps = video_capture.get(cv2.CAP_PROP_FPS)
             success, frame = video_capture.read()
-            count = 0
+
+            self.frame_times = []
             while success:
-                if count % 3 == 0:
+                current_frame = int(video_capture.get(cv2.CAP_PROP_POS_FRAMES))
+                if current_frame % 3 == 0:
                     gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                     self.image_list.append(self.resize(gray_frame))
                     success, frame = video_capture.read()
-                count += 1
+                    current_time = current_frame / fps
+                    self.frame_times.append(current_time)
             video_capture.release()
             return self.image_list
 
@@ -99,7 +161,7 @@ class VisualOdometry:
         prev_features_ = prev_features_[status.flatten() == 1]
         return prev_features_, curr_features
 
-    def getPose(self, prev_features, curr_features):
+    def getPose(self, prev_features, curr_features, numFrame):
         # Calculates the transformation matrix
         E, _ = cv2.findEssentialMat(
             prev_features, curr_features, self.camera_matrix, threshold=1
@@ -110,6 +172,12 @@ class VisualOdometry:
         _, R, t, _ = cv2.recoverPose(
             E, curr_features, prev_features, cameraMatrix=self.camera_matrix
         )
+        if (
+            self.frame_times[numFrame] - 3
+            >= list(self.gimbal_rotation_matrix.keys())[0]
+        ):
+            R = np.matmul(R, list(self.gimbal_rotation_matrix.values())[0])
+            del self.gimbal_rotation_matrix[list(self.gimbal_rotation_matrix.keys())[0]]
 
         # Get transformation matrix
         transformation_matrix = self.formTransf(R, np.squeeze(t))
@@ -200,7 +268,7 @@ class VisualOdometry:
         for numFrame in range(1, len(self.image_list)):
             curr_image = self.image_list[numFrame]
             prev_features, curr_features = self.featureMatches(pre_image, curr_image)
-            transf = self.getPose(prev_features, curr_features)
+            transf = self.getPose(prev_features, curr_features, numFrame)
 
             cur_pose = np.matmul(cur_pose, np.linalg.inv(transf))
             # print(cur_pose, cur_pose[0, 3], cur_pose[2, 3], cur_pose[3, 3])
