@@ -20,7 +20,7 @@ class VisualOdometry:
         self.trajactory_predict = []
         self.have_gps = True
         self.gimbal_data_path = gimbal_data_path
-        self.getGimbalData()
+        # self.getGimbalData()
 
         self.image_list = self.getImageList()
 
