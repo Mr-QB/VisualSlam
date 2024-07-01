@@ -84,7 +84,7 @@ class VisualOdometry:
                 - self.gimbal_data.loc[index - 1]["GIMBAL.yaw"]
             )
 
-            rotation_matrix = rotationMatrixFromEuler(pitch, roll, yaw)
+            rotation_matrix = rotationMatrixFromEuler(pitch, yaw,roll)
             self.gimbal_rotation_matrix[
                 (self.gimbal_data.loc[index]["OSD.flyTime [s]"])
             ] = rotation_matrix
