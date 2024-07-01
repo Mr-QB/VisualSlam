@@ -126,7 +126,7 @@ class VisualOdometry:
                 if count % 3 == 0:
                     gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                     self.image_list.append(
-                        self.resize(cv2.imread(image_path, cv2.IMREAD_GRAYSCALE))
+                        self.resize(gray_frame)
                     )
                     # self.image_list.append(gray_frame)
                     current_time = count / fps
