@@ -39,28 +39,30 @@ class VisualOdometry:
 
     def getGimbalData(self):
         def rotationMatrixFromEuler(pitch, roll, yaw):
-            pitch = np.radians(pitch)
             roll = np.radians(roll)
+            pitch = np.radians(pitch)
             yaw = np.radians(yaw)
 
             R_x = np.array(
                 [
                     [1, 0, 0],
-                    [0, np.cos(pitch), -np.sin(pitch)],
-                    [0, np.sin(pitch), np.cos(pitch)],
+                    [0, np.cos(roll), -np.sin(roll)],
+                    [0, np.sin(roll), np.cos(roll)],
                 ]
             )
+
             R_y = np.array(
                 [
-                    [np.cos(roll), 0, np.sin(roll)],
+                    [np.cos(pitch), 0, np.sin(pitch)],
                     [0, 1, 0],
-                    [-np.sin(roll), 0, np.cos(roll)],
+                    [-np.sin(pitch), 0, np.cos(pitch)],
                 ]
             )
+
             R_z = np.array(
                 [
-                    [np.cos(yaw), -np.sin(yaw), 0],
-                    [np.sin(yaw), np.cos(yaw), 0],
+                    [np.cos(yaw), -np.sin(yaw)],
+                    [np.sin(yaw), np.cos(yaw)],
                     [0, 0, 1],
                 ]
             )
@@ -71,20 +73,20 @@ class VisualOdometry:
         self.gimbal_data = pd.read_pickle(self.gimbal_data_path)
         self.gimbal_rotation_matrix = {}
         for index in range(23, self.gimbal_data.shape[0]):
-            pitch = (
-                self.gimbal_data.loc[index]["GIMBAL.pitch"]
-                - self.gimbal_data.loc[index - 1]["GIMBAL.pitch"]
-            )
             roll = (
                 self.gimbal_data.loc[index]["GIMBAL.roll"]
                 - self.gimbal_data.loc[index - 1]["GIMBAL.roll"]
+            )
+            pitch = (
+                self.gimbal_data.loc[index]["GIMBAL.pitch"]
+                - self.gimbal_data.loc[index - 1]["GIMBAL.pitch"]
             )
             yaw = (
                 self.gimbal_data.loc[index]["GIMBAL.yaw"]
                 - self.gimbal_data.loc[index - 1]["GIMBAL.yaw"]
             )
 
-            rotation_matrix = rotationMatrixFromEuler(pitch, -yaw, -roll)
+            rotation_matrix = rotationMatrixFromEuler(roll, -yaw, -pitch)
             self.gimbal_rotation_matrix[
                 (self.gimbal_data.loc[index]["OSD.flyTime [s]"])
             ] = rotation_matrix
