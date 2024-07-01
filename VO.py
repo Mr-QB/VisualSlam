@@ -10,12 +10,15 @@ import time
 
 
 class VisualOdometry:
-    def __init__(self, image_path, calib_camera_file, all_oxits_data_path):
+    def __init__(self, image_path, calib_camera_file, all_oxits_data_path,gimbal_data_path):
         self.imame_path = image_path
         self.calib_camera_file = calib_camera_file
         self.all_oxits_data_path = all_oxits_data_path
         self.trajactory_predict = []
         self.have_gps = True
+        self.gimbal_data_path = gimbal_data_path
+        self.getGimbalData()
+
 
         self.image_list = self.getImageList()
 
@@ -31,6 +34,58 @@ class VisualOdometry:
             self.have_gps = False
 
         self.getTrajactory()
+
+    def getGimbalData(self):
+        def rotationMatrixFromEuler(pitch, roll, yaw):
+            pitch = np.radians(pitch)
+            roll = np.radians(roll)
+            yaw = np.radians(yaw)
+
+            R_x = np.array(
+                [
+                    [1, 0, 0],
+                    [0, np.cos(pitch), -np.sin(pitch)],
+                    [0, np.sin(pitch), np.cos(pitch)],
+                ]
+            )
+            R_y = np.array(
+                [
+                    [np.cos(roll), 0, np.sin(roll)],
+                    [0, 1, 0],
+                    [-np.sin(roll), 0, np.cos(roll)],
+                ]
+            )
+            R_z = np.array(
+                [
+                    [np.cos(yaw), -np.sin(yaw), 0],
+                    [np.sin(yaw), np.cos(yaw), 0],
+                    [0, 0, 1],
+                ]
+            )
+
+            R = np.dot(R_z, np.dot(R_y, R_x))
+            return R
+
+        self.gimbal_data = pd.read_pickle(self.gimbal_data_path)
+        self.gimbal_rotation_matrix = {}
+        for index in range(23, self.gimbal_data.shape[0]):
+            pitch = (
+                self.gimbal_data.loc[index]["GIMBAL.pitch"]
+                - self.gimbal_data.loc[index - 1]["GIMBAL.pitch"]
+            )
+            roll = (
+                self.gimbal_data.loc[index]["GIMBAL.roll"]
+                - self.gimbal_data.loc[index - 1]["GIMBAL.roll"]
+            )
+            yaw = (
+                self.gimbal_data.loc[index]["GIMBAL.yaw"]
+                - self.gimbal_data.loc[index - 1]["GIMBAL.yaw"]
+            )
+
+            rotation_matrix = rotationMatrixFromEuler(pitch, roll, yaw)
+            self.gimbal_rotation_matrix[
+                (self.gimbal_data.loc[index]["OSD.flyTime [s]"])
+            ] = rotation_matrix
 
     def getCameraMatrix(self):
         filedata = {}
@@ -56,12 +111,16 @@ class VisualOdometry:
             return self.image_list
         except:
             video_capture = cv2.VideoCapture(self.imame_path)
+            fps = video_capture.get(cv2.CAP_PROP_FPS)
             success, frame = video_capture.read()
             count = 0
+            self.frame_times = []
             while success:
                 if count % 3 == 0:
                     gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
                     self.image_list.append(gray_frame)
+                    current_time = count / fps
+                    self.frame_times.append(current_time)
                     success, frame = video_capture.read()
                 count += 1
             video_capture.release()
