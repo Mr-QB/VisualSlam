@@ -50,7 +50,7 @@ class VisualOdometry:
                     [0, np.sin(roll), np.cos(roll)],
                 ]
             )
-
+            
             R_y = np.array(
                 [
                     [np.cos(pitch), 0, np.sin(pitch)],
@@ -58,7 +58,7 @@ class VisualOdometry:
                     [-np.sin(pitch), 0, np.cos(pitch)],
                 ]
             )
-
+            
             R_z = np.array(
                 [
                     [np.cos(yaw), -np.sin(yaw), 0],
