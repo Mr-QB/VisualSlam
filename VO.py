@@ -161,10 +161,18 @@ class VisualOdometry:
         )  # Essential matrix
 
         # Decompose the Essential matrix into R and t
-        # R, t = self.decomp_essential_mat(E, prev_features, curr_features)
-        _, R, t, _ = cv2.recoverPose(
-            E, curr_features, prev_features, cameraMatrix=self.camera_matrix
-        )
+        R, t = self.decomp_essential_mat(E, prev_features, curr_features)
+        # _, R, t, _ = cv2.recoverPose(
+        #     E, curr_features, prev_features, cameraMatrix=self.camera_matrix
+        # )
+        if (
+            self.frame_times[numFrame] - 3
+            >= list(self.gimbal_rotation_matrix.keys())[0]
+            if self.gimbal_rotation_matrix
+            else False
+        ):
+            R = np.matmul(R, list(self.gimbal_rotation_matrix.values())[0])
+            del self.gimbal_rotation_matrix[list(self.gimbal_rotation_matrix.keys())[0]]
 
         # Get transformation matrix
         transformation_matrix = self.form_transf(R, np.squeeze(t))
