@@ -101,6 +101,12 @@ class VisualOdometry:
         self.projection_matrix = filedata["P_rect_00"].reshape((3, 4))
         self.camera_matrix = self.projection_matrix[0:3, 0:3]
 
+    def resize(self, frame, new_width=800, new_height=600):
+        # Size reduction ratio according to 16:9
+        # new_width = 640  # New width
+        # new_height = 360  # New height
+        return cv2.resize(frame, (new_width, new_height), interpolation=cv2.INTER_AREA)
+
     def getImageList(self):
         # Retrieves a list of images from a specified folder path.
         self.image_list = []
@@ -119,7 +125,10 @@ class VisualOdometry:
             while success:
                 if count % 3 == 0:
                     gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                    self.image_list.append(gray_frame)
+                    self.image_list.append(
+                        self.resize(cv2.imread(image_path, cv2.IMREAD_GRAYSCALE))
+                    )
+                    # self.image_list.append(gray_frame)
                     current_time = count / fps
                     self.frame_times.append(current_time)
                     success, frame = video_capture.read()
