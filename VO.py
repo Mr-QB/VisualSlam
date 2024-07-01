@@ -162,7 +162,10 @@ class VisualOdometry:
         )  # Essential matrix
 
         # Decompose the Essential matrix into R and t
-        R, t = self.decomp_essential_mat(E, prev_features, curr_features)
+        # R, t = self.decomp_essential_mat(E, prev_features, curr_features)
+        _, R, t, _ = cv2.recoverPose(
+            E, curr_features, prev_features, cameraMatrix=self.camera_matrix
+        )
 
         # Get transformation matrix
         transformation_matrix = self.form_transf(R, np.squeeze(t))
@@ -264,7 +267,7 @@ class VisualOdometry:
             curr_image = self.image_list[numFrame]
             prev_features, curr_features = self.featureMatches(
                 pre_image, curr_image)
-            transf = self.get_pose(prev_features, curr_features)
+            transf = self.get_pose(prev_features, curr_features,numFrame)
 
             cur_pose = np.matmul(cur_pose, np.linalg.inv(transf))
             # print(cur_pose, cur_pose[0, 3], cur_pose[2, 3], cur_pose[3, 3])
