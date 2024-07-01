@@ -61,8 +61,8 @@ class VisualOdometry:
 
             R_z = np.array(
                 [
-                    [np.cos(yaw), -np.sin(yaw)],
-                    [np.sin(yaw), np.cos(yaw)],
+                    [np.cos(yaw), -np.sin(yaw), 0],
+                    [np.sin(yaw), np.cos(yaw), 0],
                     [0, 0, 1],
                 ]
             )
