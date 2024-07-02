@@ -5,6 +5,7 @@ if __name__ == "__main__":
         image_path="droneTestData/2011_09_26/2011_09_26_drive_0001_sync/image_00/data",
         calib_camera_file="droneTestData/2011_09_26/calib_cam_to_cam.txt",
         all_oxits_data_path="droneTestData/2011_09_26/2011_09_26_drive_0001_sync/oxts/data",
+        gimbal_data_path = None
     )
     # VO = VisualOdometry(
     #     # image_path="droneTestData/droneTest.mp4",
